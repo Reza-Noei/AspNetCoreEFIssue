@@ -1,0 +1,39 @@
+version: '3'
+services:
+    mssql:
+        image: mcr.microsoft.com/mssql/server
+        container_name: mssql
+        ports:
+            - 1633:1433
+        environment:
+            - TZ=Asia/Tehran
+            - ACCEPT_EULA=Y
+            - MSSQL_SA_PASSWORD=@TommorrowNeverDies2020
+        user: root
+        volumes:
+            - ./mssql:/var/opt/msssql/data
+        networks:
+            my_network:
+    my-service:
+        image: aspnetcoreef:latest
+        container_name: my-service
+        expose:
+            - 9072
+        ports:
+            - 9072:9000
+        depends_on:
+            - mssql
+        environment:
+            - ASPNETCORE__ENVIRONMENT=Production
+            - TZ=Asia/Tehran
+            - AUTO__MIGRATE=true
+            - ConnectionStrings__DefaultConnection=Server=mssql;Initial Catalog=SampleDb;User ID=sa;pwd=@TommorrowNeverDies2020;MultipleActiveResultSets=true;
+            - IdentityServerTokenEndpointAcceptJsonRequests=false
+            - Kestrel__Endpoints__Httpv2__Url=http://+:9000
+            - Kestrel__Endpoints__Httpv2__Protocols=http2
+            - Serilog__WriteToFileSinkArgs_path=/log.txt
+        networks:
+            my_network:
+networks:
+    my_network:
+        driver: bridge
